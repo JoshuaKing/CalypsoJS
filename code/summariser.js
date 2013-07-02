@@ -20,58 +20,60 @@ function Summariser() {
 		last = 0;
 		deleting = 0;
 		this.string = this.string.replace(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/g, "");
-		for (i = 0; i < this.string.length; i++) {
-			if (this.string[i] == "(" || this.string[i] == "{") {
-				deleting++;
-			}
-			if (this.string[i] == ")" || this.string[i] == "}") {
-				deleting--;
-				this.string[i] = "";
-			}
-			if (deleting != 0) {
-				this.string[i] = "";
-			}
-		}
+		this.string = this.string.replace(/\(.*?\)/g, "");	// replace contents of parenthesis
+		this.string = this.string.replace(/{.*?}/g, "");	// replace contents of curly braces
+		this.string = this.string.replace(/\[.*?\]/g, "");	// replace contents of square braces
 		
-		if (this.string.substr(0, "#redirect".length).toLowerCase() == "#redirect") {
+		/*if (this.string.substr(0, "#redirect".length).toLowerCase() == "#redirect") {
 			return this.string;
 		}
 		
 		this.string = this.string.replace(/}/g, "");
-		this.string = this.string.replace(/\)/g, "");
-		this.string = this.string.replace(/\\n/, "<br>");
+		this.string = this.string.replace(/\)/g, "");*/
+		this.string = this.string.replace(/\n/, "<br>");/*
 		l = this.string.split("]]");
 		for (i = 0; i < l.length; i++) {
 			l[i] = l[i].replace(/\[\[.+\|/g, "");
 		}
 		this.string = l.join('');
 		this.string = this.string.replace(/\]\]/g, "");
-		this.string = this.string.replace(/\[\[/g, "");
+		this.string = this.string.replace(/\[\[/g, "");*/
 		this.string = this.string.replace(/\\/g,"");
 		
 		return this.string;
 	}
+	
 	this.s_split = function() {
-		this.s_array = this.string.split(/([^A-Z][.?!][^a-z])/);
+		this.string = this.string.replace(/([0-9])[.]([0-9])/g, "[$1:$2]");	// remove decimal points from being counted
+		this.s_array = this.string.split(/[.?!]/);
+		seperators = this.string.replace(/[^.!?]/g, '');
+		numsentences = this.s_array.length;
+		
+		// Add separators back in //
+		for (i = 0; i < this.s_array.length && i < seperators.length; i++) {
+			this.s_array[i] += seperators[i];
+		}
+		
+		// Order according to importance (always include 1st sentence //
 		for (i = 0; i < this.s_array.length; i++) {
-			this.s_array[i] = this.s_array[i].replace(/<\/?[^>]+(>|$)/g, "");;
+			this.s_array[i] = this.s_array[i].replace(/<[^>]+(>|$)/g, "");;
 			if (this.s_array[i].indexOf("*") >= 0) {
 				lio = this.s_array[$i].split("*");
 				for (po = 1; po < lio.length; po++) {
 					if (po == 1) {
-						lio[po] = "<ul><li>" + lio[po] + "</li>";
+						lio[po] = lio[po];
 					} else {
-						lio[po] = "<li>" + lio[po] + "</li>";
+						lio[po] += " " + lio[po];
 					}
 				}
-				this.s_array[i] = $lio.join('');
-				this.s_array[i] += "</ul>";
+				this.s_array[i] = lio.join('');
 			}
 			if (this.s_array[i].indexOf("Category:") >= 0) {
 				this.s_array[i] = this.s_array[i].replace(/Category:[^.\<]+/g, "");
 			}
 		}
 		
+		return numsentences;
 	}
 	this.summarise = function(sent) {
 		words = new Array();
@@ -96,15 +98,15 @@ function Summariser() {
 				}
 			}
 		}
-		if (sent >this.s_array.length) 
+		if (sent > this.s_array.length) 
 			sent = this.s_array.length;
 		
-		tor = this.s_array[0];
+		tor = this.s_array[0].replace(/\[([0-9]):([0-9])\]/, "$1.$2");	// add decimal points back in
 		this.s_importance[0] = -2;
 		for (i = 1; i < sent; i++) {
 			max = array_keys(this.s_importance, this.s_importance.max());
-			if(this.s_importance[max[0]] != -2)
-				tor += "<br><br><br>" + this.s_array[max[0]] + " ";
+			if(this.s_importance[max[0]] != -2) 
+				tor += "<br/>" + this.s_array[max[0]].replace(/\[([0-9]):([0-9])\]/, "$1.$2") + " "; 	// add decimal points back in
 			this.s_importance[max[0]] = -2;
 		}
 		//this.s_array = temp;//$maxs = array_keys($array, max($array))*/
