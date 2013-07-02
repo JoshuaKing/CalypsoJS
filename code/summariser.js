@@ -1,6 +1,6 @@
-// Attempt 1 at porting to Javascript //
+// Attempt at porting to Javascript //
 
-function summariser {
+function Summariser() {
 	// Parameters //
 	this.string = "";
 	this.s_array = new Array();
@@ -38,24 +38,24 @@ function summariser {
 		}
 		
 		this.string = this.string.replace(/}/g, "");
-		this.string = this.string.replace(/)/g, "");
+		this.string = this.string.replace(/\)/g, "");
 		this.string = this.string.replace(/\\n/, "<br>");
 		l = this.string.split("]]");
 		for (i = 0; i < l.length; i++) {
 			l[i] = l[i].replace(/\[\[.+\|/g, "");
 		}
 		this.string = l.join('');
-		this.string = this.string.replace(/]]/g, "");
-		this.string = this.string.replace(/[[/g, "");
+		this.string = this.string.replace(/\]\]/g, "");
+		this.string = this.string.replace(/\[\[/g, "");
 		this.string = this.string.replace(/\\/g,"");
 		
 		return this.string;
 	}
 	this.s_split = function() {
-		this.s_array = this.string.split(/(?<=[^A-Z][.?!][^a-z])/);
+		this.s_array = this.string.split(/([^A-Z][.?!][^a-z])/);
 		for (i = 0; i < this.s_array.length; i++) {
 			this.s_array[i] = this.s_array[i].replace(/<\/?[^>]+(>|$)/g, "");;
-			if (this.s_array[$i].indexOf("*") >= 0) {
+			if (this.s_array[i].indexOf("*") >= 0) {
 				lio = this.s_array[$i].split("*");
 				for (po = 1; po < lio.length; po++) {
 					if (po == 1) {
@@ -102,12 +102,12 @@ function summariser {
 		tor = this.s_array[0];
 		this.s_importance[0] = -2;
 		for (i = 1; i < sent; i++) {
-			max = array_keys(this.s_importance, max(this.s_importance));
-			if(this.s_importance[$max[0]] != -2)
-				$tor .= "<br><br><br>".this.s_array[$max[0]]." ";
-			this.s_importance[$max[0]] = -2;
+			max = array_keys(this.s_importance, this.s_importance.max());
+			if(this.s_importance[max[0]] != -2)
+				tor += "<br><br><br>" + this.s_array[max[0]] + " ";
+			this.s_importance[max[0]] = -2;
 		}
-		this.s_array = temp;//$maxs = array_keys($array, max($array))*/
+		//this.s_array = temp;//$maxs = array_keys($array, max($array))*/
 		tor = tor.replace(/=.+=/g, "");
 		tor = tor.replace(/u([\da-fA-F]{4})/g, '&#x\1;');
 		this.response = tor;
@@ -200,7 +200,7 @@ function str_word_count(str, format, charlist) {
     if ((c = _getWholeChar(str, i)) === false) {
       continue;
     }
-    match = this.ctype_alpha(c) || (reg && c.search(reg) !== -1) || ((i !== 0 && i !== len - 1) && c === '-') || // No hyphen at beginning or end unless allowed in charlist (or locale)
+    match = /*c.search(c) !== -1 || */(reg && c.search(reg) !== -1) || ((i !== 0 && i !== len - 1) && c === '-') || // No hyphen at beginning or end unless allowed in charlist (or locale)
     (i !== 0 && c === "'"); // No apostrophe at beginning unless allowed in charlist (or locale)
     if (match) {
       if (tmpStr === '' && format === 2) {
@@ -229,25 +229,51 @@ function str_word_count(str, format, charlist) {
   throw 'You have supplied an incorrect format';
 }
 
-/* Adapted from Stack Overflow: http://stackoverflow.com/questions/2509432/how-to-get-array-keys-in-javascript */
-Object.prototype.keys = function()
-{
-    if(!this)
-    {
-      return null;
-    }
+/* From PHP JS: http://phpjs.org/functions/array_keys/ */
+function array_keys (input, search_value, argStrict) {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +      input by: Brett Zamir (http://brett-zamir.me)
+  // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   improved by: jd
+  // +   improved by: Brett Zamir (http://brett-zamir.me)
+  // +   input by: P
+  // +   bugfixed by: Brett Zamir (http://brett-zamir.me)
+  // *     example 1: array_keys( {firstname: 'Kevin', surname: 'van Zonneveld'} );
+  // *     returns 1: {0: 'firstname', 1: 'surname'}
 
-    var c = [];
+  var search = typeof search_value !== 'undefined',
+    tmp_arr = [],
+    strict = !!argStrict,
+    include = true,
+    key = '';
 
-    for (var key in this) 
-    {
-        if ( ( this instanceof Array && this.constructor === Array && key === 'length' ) || !this.hasOwnProperty(key) ) 
-        {
-            continue;
+  if (input && typeof input === 'object' && input.change_key_case) { // Duck-type check for our own array()-created PHPJS_Array
+    return input.keys(search_value, argStrict);
+  }
+
+  for (key in input) {
+    if (input.hasOwnProperty(key)) {
+      include = true;
+      if (search) {
+        if (strict && input[key] !== search_value) {
+          include = false;
         }
+        else if (input[key] != search_value) {
+          include = false;
+        }
+      }
 
-        c.push(key);
+      if (include) {
+        tmp_arr[tmp_arr.length] = key;
+      }
     }
+  }
 
-    return c;
+  return tmp_arr;
+}
+
+/* From Stack Overflow: http://stackoverflow.com/questions/1669190/javascript-min-max-array-values */
+Array.prototype.max = function() {
+  return Math.max.apply(null, this);
 };

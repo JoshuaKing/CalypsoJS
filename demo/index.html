@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<script src="../code/summariser.js"></script>
+	</head>
+	<body>
+		<h1>Paragraph to summarise</h1>
+		
+		<!-- Long paragraph to summarise, from: http://en.wikipedia.org/wiki/Explanation -->
+		<div id="paragraph">
+		The notion of meta-explanation is important in behavioral scenarios that involve conflicting agents. In these scenarios, implicit of or explicit conflict can be caused by contradictory agents' interests, as communicated in their explanations for why they behaved in a particular way, by a lack of knowledge of the situation, or by a mixture of explanations of multiple factors. In many cases to assess the plausibility of explanations, one must analyze two following components and their interrelations: (1) explanation at the actual object level (explanation itself) and (2) explanation at the higher level (meta-explanation). Comparative analysis of the roles of both is conducted to assess the plausibility of how agents explain the scenarios of their interactions.[1] Object-level explanation assesses the plausibility of individual claims by using a traditional approach to handle argumentative structure of a dialog. Meta-explanation links the structure of a current scenario with that of previously learned scenarios of multi-agent interaction. The scenario structure includes agents' communicative actions and argumentation defeat relations between the subjects of these actions. The data for both object-level and meta-explanation can be visually specified,and a plausibility of how agent behavior in a scenario can be visually explained. Meta-explanation in the form of machine learning of scenario structure can be augmented by conventional explanation by finding arguments in the form of defeasibility analysis of individual claims, to increase the accuracy of plausibility assessment.[2]
+A ratio between object-level and meta-explanation can be defined as the relative accuracy of plausibility assessment based on the former and latter sources. The groups of scenarios can then be clustered based on this ratio; hence, such a ratio is an important parameter of human behavior associated with explaining something to other humans.
+		</div>
+		
+		<h1>Summary</h1>
+		<div id="summary"></div>
+		
+		<script>
+			var summary = new Summariser();
+			var text = document.getElementById("paragraph").innerHTML;
+			
+			summary.setString(text);
+			summary.remove_brackets();
+			summary.s_split();
+			summary.summarise(5);
+			
+			document.getElementById("summary").innerHTML = summary.response;
+		</script>
+	</body>
+</html>
