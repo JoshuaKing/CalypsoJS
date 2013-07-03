@@ -23,21 +23,7 @@ function Summariser() {
 		this.string = this.string.replace(/\(.*?\)/g, "");	// replace contents of parenthesis
 		this.string = this.string.replace(/{.*?}/g, "");	// replace contents of curly braces
 		this.string = this.string.replace(/\[.*?\]/g, "");	// replace contents of square braces
-		
-		/*if (this.string.substr(0, "#redirect".length).toLowerCase() == "#redirect") {
-			return this.string;
-		}
-		
-		this.string = this.string.replace(/}/g, "");
-		this.string = this.string.replace(/\)/g, "");*/
-		this.string = this.string.replace(/\n/, "<br>");/*
-		l = this.string.split("]]");
-		for (i = 0; i < l.length; i++) {
-			l[i] = l[i].replace(/\[\[.+\|/g, "");
-		}
-		this.string = l.join('');
-		this.string = this.string.replace(/\]\]/g, "");
-		this.string = this.string.replace(/\[\[/g, "");*/
+		this.string = this.string.replace(/\n/, "<br>");
 		this.string = this.string.replace(/\\/g,"");
 		this.string = this.string.replace(/<[^>]+(>|$)/g, "");
 		
@@ -53,25 +39,6 @@ function Summariser() {
 		// Add separators back in //
 		for (i = 0; i < this.s_array.length && i < seperators.length; i++) {
 			this.s_array[i] += seperators[i];
-		}
-		
-		// Order according to importance (always include 1st sentence //
-		for (i = 0; i < this.s_array.length; i++) {
-			//this.s_array[i] = this.s_array[i].replace(/<[^>]+(>|$)/g, "");;
-			if (this.s_array[i].indexOf("*") >= 0) {
-				lio = this.s_array[i].split("*");
-				for (po = 1; po < lio.length; po++) {
-					if (po == 1) {
-						lio[po] = lio[po];
-					} else {
-						lio[po] += " " + lio[po];
-					}
-				}
-				this.s_array[i] = lio.join('');
-			}
-			if (this.s_array[i].indexOf("Category:") >= 0) {
-				this.s_array[i] = this.s_array[i].replace(/Category:[^.\<]+/g, "");
-			}
 		}
 		
 		return numsentences;
@@ -116,16 +83,6 @@ function Summariser() {
 		tor = tor.replace(/u([\da-fA-F]{4})/g, '&#x\1;');
 		this.response = tor;
 		return tor;
-	}
-	
-	this.isRedirect = function() {
-		if (this.string.substr(0, "#redirect".length).toLowerCase() == "#redirect") {
-			l = new array();
-			l = l.match(/[[.+]]/g, this.string);
-			return l[0];
-		} else {
-			return false;
-		}
 	}
 }
 
@@ -204,7 +161,7 @@ function str_word_count(str, format, charlist) {
     if ((c = _getWholeChar(str, i)) === false) {
       continue;
     }
-    match = /*c.search(c) !== -1 || */(reg && c.search(reg) !== -1) || ((i !== 0 && i !== len - 1) && c === '-') || // No hyphen at beginning or end unless allowed in charlist (or locale)
+    match = (reg && c.search(reg) !== -1) || ((i !== 0 && i !== len - 1) && c === '-') || // No hyphen at beginning or end unless allowed in charlist (or locale)
     (i !== 0 && c === "'"); // No apostrophe at beginning unless allowed in charlist (or locale)
     if (match) {
       if (tmpStr === '' && format === 2) {
