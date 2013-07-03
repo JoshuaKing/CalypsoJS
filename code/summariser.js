@@ -39,6 +39,7 @@ function Summariser() {
 		this.string = this.string.replace(/\]\]/g, "");
 		this.string = this.string.replace(/\[\[/g, "");*/
 		this.string = this.string.replace(/\\/g,"");
+		this.string = this.string.replace(/<[^>]+(>|$)/g, "");
 		
 		return this.string;
 	}
@@ -56,9 +57,9 @@ function Summariser() {
 		
 		// Order according to importance (always include 1st sentence //
 		for (i = 0; i < this.s_array.length; i++) {
-			this.s_array[i] = this.s_array[i].replace(/<[^>]+(>|$)/g, "");;
+			//this.s_array[i] = this.s_array[i].replace(/<[^>]+(>|$)/g, "");;
 			if (this.s_array[i].indexOf("*") >= 0) {
-				lio = this.s_array[$i].split("*");
+				lio = this.s_array[i].split("*");
 				for (po = 1; po < lio.length; po++) {
 					if (po == 1) {
 						lio[po] = lio[po];
@@ -75,6 +76,7 @@ function Summariser() {
 		
 		return numsentences;
 	}
+	
 	this.summarise = function(sent) {
 		words = new Array();
 		sentleng = this.s_array.length;
