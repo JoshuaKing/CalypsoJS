@@ -7,13 +7,32 @@
 		
 		<!-- Long paragraph to summarise, from: http://en.wikipedia.org/wiki/Explanation -->
 		<div id="paragraph">
-		The 9.5 notions of meta-explanation is important in behavioral scenarios that involve conflicting agents. In these scenarios, implicit of or explicit conflict can be caused by contradictory agents' interests, as communicated in their explanations for why they behaved in a particular way, by a lack of knowledge of the situation, or by a mixture of explanations of multiple factors. In many cases to assess the plausibility of explanations, one must analyze two following components and their interrelations: (1) explanation at the actual object level (explanation itself) and (2) explanation at the higher level (meta-explanation). Comparative analysis of the roles of both is conducted to assess the plausibility of how agents explain the scenarios of their interactions.[1] Object-level explanation assesses the plausibility of individual claims by using a traditional approach to handle argumentative structure of a dialog. Meta-explanation links the structure of a current scenario with that of previously learned scenarios of multi-agent interaction. The scenario structure includes agents' communicative actions and argumentation defeat relations between the subjects of these actions. The data for both object-level and meta-explanation can be visually specified,and a plausibility of how agent behavior in a scenario can be visually explained. Meta-explanation in the form of machine learning of scenario structure can be augmented by conventional explanation by finding arguments in the form of defeasibility analysis of individual claims, to increase the accuracy of plausibility assessment.[2]
+        Bats, dolphins and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
 
-		A ratio between object-level and meta-explanation can be defined as the relative accuracy of plausibility assessment based on the former and latter sources. The groups of scenarios can then be clustered based on this ratio; hence, such a ratio is an important parameter of human behavior associated with explaining something to other humans.
-		</div>
+        Ivan Dokmanic and colleagues at the Swiss Federal Institute of Technology (EPFL) in Lausanne have developed a system capable of reconstructing the shape of a room - and where you are in it - using echoes.
+
+        What's key to the trick, say human echolocators, is sensing the strong early reflections off the walls, rather than the noisy, confusing mishmash of late-arriving, weaker echoes.
+
+        Hoping to computerise this process of 3D visualisation, the EPFL team has developed a system capable of reconstructing the shape of a room using these "first order" echoes. To do this, the researchers wrote an echo-sorting algorithm which can discriminate between the first and later echoes.
+
+        To test their plan they set up a loudspeaker and five microphones in Lausanne cathedral. The speaker briefly emitted an audible chirp - sweeping from 200 hertz to 10 kilohertz - and the reflections were analysed to successfully reveal the cathedral's 3D shape and the location of the sound source (PNAS, DOI: 10.1073/pnas.1221464110).
+
+        Now the team wants to build an app that works using inaudible ultrasound to map interiors and tell people where they are in them. This would need multiple phones cooperating over Bluetooth or Wi-Fi in the building.
+
+        "At least four microphones are needed to ensure we robustly capture first order echoes and reject noise," says Dokmanic. "This could be run by a store owner like Wal-Mart, allowing people to download the app when they come in."
+
+        Dokmanic, currently on secondment to Microsoft Research in Redmond, Washington, says the indoor localisation app should be ready in a year's time.
+
+        Another tack the team may take is simply measuring echoes from people's voices as they walk around a building talking on their cellphones. But that will face problems, says University of Salford acoustician Trevor Cox - who once modelled Stonehenge acoustically.
+
+        "To make an app which can listen to mobile phone speech and help you echolocate presents a huge number of challenges. In a crowded mall fellow shoppers would scatter and absorb echoes, while the chatty hubbub would mask the sound of the reflections."
+        </div>
 		
 		<h1>Summary</h1>
 		<div id="summary"></div>
+
+        <h1>Summary Stats</h1>
+		<div id="summary-stats"></div>
 		
 		<script>
 			var summary = new Summariser();
@@ -22,8 +41,10 @@
 			summary.setString(text);
 			summary.remove_brackets();
 			numsentences = summary.s_split();
-			summary.summarise(0.2 * numsentences);
+            touse = Math.ceil(0.3 * numsentences);
+			summary.summarise(touse);
 			
+            document.getElementById("summary-stats").innerHTML = "Compression: " + touse + " of " + numsentences + " sentences (" + Math.floor((summary.response.length/text.length) * 100) + "% of characters)"; 
 			document.getElementById("summary").innerHTML = summary.response;
 		</script>
 	</body>
