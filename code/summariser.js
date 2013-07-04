@@ -83,16 +83,22 @@ function Summariser() {
 
 		// Sort //
 		var sortable = [];
-		for (var i = 0; i < words.length; i++) 
+		for (var i = 0; i < words.length; i++) {
+			if (words[i].length > 3)
 			sortable.push([this.s_array[i], i, scores[i], scores[i] / words[i].length]);
+		}
 		sortable.sort(function(a, b) {return a[3] - b[3]});	// sort on normalised value
 				
 		var rated = new Array();
 		for (i = 0; i < Math.ceil(sent); i++) {
 			rated.push(sortable[i][1]);
 		}
+		if (words[0].length > 3 && rated.indexOf(0) < 0) {
+			rated.pop();
+			rated.push(0);
+		}
 		
-		return rated.sort();
+		return rated.sort(function(a,b){return a-b});
 	}
 	
 	this.summarise = function(sent) {
