@@ -79,18 +79,20 @@ function Summariser() {
 				w = words[sentence][i];
 				scores[sentence] += counts[w];
 			}
+			console.log("sentence #" + sentence + " avg score/word: " + (scores[sentence] / words[sentence].length) + " score: " + scores[sentence]);
 		}
 
 		// Sort //
 		var sortable = [];
 		for (var i = 0; i < words.length; i++) 
-			sortable.push([this.s_array[i], i, scores[i]]);
-		sortable.sort(function(a, b) {return a[2] - b[2]});
+			sortable.push([this.s_array[i], i, scores[i], scores[i] / words[i].length]);
+		sortable.sort(function(a, b) {return a[3] - b[3]});	// sort on normalised value
 				
 		var rated = new Array();
 		for (i = 0; i < Math.ceil(sent); i++) {
 			rated.push(sortable[i][1]);
 		}
+		console.log(rated);
 		
 		return rated.sort();
 	}
