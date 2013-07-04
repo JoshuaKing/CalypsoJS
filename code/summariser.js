@@ -133,7 +133,12 @@ function Summariser() {
 		
 		this.response = "";
 		for (i = 0; i < rated.length; i++) {
-			this.response += this.s_array[rated[i]].replace(/\[([0-9]):([0-9])\]/, "$1.$2") + "<br/>"; 	// add decimal points back in
+			this.response += this.s_array[rated[i]].replace(/\[([0-9]):([0-9])\]/, "$1.$2");	// add decimal points back in
+			if (i < rated.length - 1 && rated[i] == rated[i+1] - 1) {
+				this.response += " ";	// The next sentence happens to be the next in paragraph
+			} else if (i < rated.length - 1) {
+				this.response += "<br/>";	// Sentence or more may separate the two
+			}
 		}
 		return this.response;
 	}
