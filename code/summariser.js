@@ -79,7 +79,6 @@ function Summariser() {
 				w = words[sentence][i];
 				scores[sentence] += counts[w];
 			}
-			console.log("sentence #" + sentence + " avg score/word: " + (scores[sentence] / words[sentence].length) + " score: " + scores[sentence]);
 		}
 
 		// Sort //
@@ -92,7 +91,6 @@ function Summariser() {
 		for (i = 0; i < Math.ceil(sent); i++) {
 			rated.push(sortable[i][1]);
 		}
-		console.log(rated);
 		
 		return rated.sort();
 	}
