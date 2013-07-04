@@ -25,7 +25,11 @@ function Summariser() {
 		this.string = this.string.replace(/\[.*?\]/g, "");	// replace contents of square braces
 		this.string = this.string.replace(/\n/, "<br>");
 		this.string = this.string.replace(/\\/g,"");
+
+		// remove all html //
 		this.string = this.string.replace(/<[^>]+(>|$)/g, "");
+		// remove any remaining left-over angle brackets, just in case //
+		this.string = this.string.replace(/[<>]/g, "");
 		
 		return this.string;
 	}
