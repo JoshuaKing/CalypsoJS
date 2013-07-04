@@ -23,7 +23,9 @@ function Summariser() {
 		this.string = this.string.replace(/\(.*?\)/g, "");	// replace contents of parenthesis
 		this.string = this.string.replace(/{.*?}/g, "");	// replace contents of curly braces
 		this.string = this.string.replace(/\[.*?\]/g, "");	// replace contents of square braces
-		this.string = this.string.replace(/\n/, "<br>");
+		this.string = this.string.replace(/\n/g, "<br>");
+		this.string = this.string.replace(/[<]\/?br\/?[>]/g, ".");
+		this.string = this.string.replace(/([^.])[<][/]p[>]/g, "$1.</p>");
 		this.string = this.string.replace(/\\/g,"");
 
 		// remove all html //
