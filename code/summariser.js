@@ -326,6 +326,26 @@ function Summariser() {
 		return numsentences;
 	}
 
+	this.map = function(ss) {
+		ss = ss.getStructure();
+		var count = new Array();
+		for (i = 0; i < ss.length; i++) {
+			if (ss[i].token == SenSym.TOKEN) {
+				t = ss[i].value;
+				if (t.token == Tok.WORD || t.token == Tok.CONTRACTION) {
+					if (count[t.value]) count[t.value]++;
+					else count[t.value] = 1;
+				}
+			} else if (ss[i].token == SenSym.BRACKETQUOTE) {
+				
+			} else {
+			
+			}
+		}
+		
+		return count;
+	}
+	
 	this.reduce = function(words, sent) {
 		counts = new Array();
 		allWords = new Array();

@@ -45,6 +45,9 @@
 			summary.tokenize();
 			var ss = summary.sentence_tokenize();
 			this.outputStructure(ss, 0, -1);
+			var c = summary.map(ss);
+			console.log(c);
+			// Old Way //
 			summary.remove_brackets();
 			numsentences = summary.s_split();
             touse = Math.ceil(0.3 * numsentences);
