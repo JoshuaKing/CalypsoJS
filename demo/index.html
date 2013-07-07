@@ -5,11 +5,11 @@
 	<body>
 		<h1>Paragraph to summarise</h1>
 		
-		<!-- Long paragraph to summarise, from: http://en.wikipedia.org/wiki/Explanation -->
+		<!-- Long paragraph to summarise, from: http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html -->
 		<div id="paragraph">
-        Bats, dolphins and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
+        Quotation slightly edited from <a href="http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html">http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html</a>. Bats, dolphins, and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
 
-        Ivan Dokmanic and colleagues at the Swiss Federal Institute of Technology (EPFL) in Lausanne have developed a system capable of reconstructing the shape of a room - and where you are in it - using echoes.
+        I. A. Dokmanic and colleagues at the Swiss Federal Institute of Technology (EPFL) in Lausanne have developed a system capable of reconstructing the shape of a room - and where you are in it - using echoes.
 
         What's key to the trick, say human echolocators, is sensing the strong early reflections off the walls, rather than the noisy, confusing mishmash of late-arriving, weaker echoes.
 
@@ -34,11 +34,15 @@
         <h1>Summary Stats</h1>
 		<div id="summary-stats"></div>
 		
+		<h1>Debug Messages</h1>
+		<div id="summary-debug"></div>
+		
 		<script>
 			var summary = new Summariser();
 			var text = document.getElementById("paragraph").innerHTML;
 			
 			summary.setString(text);
+			summary.tokenize();
 			summary.remove_brackets();
 			numsentences = summary.s_split();
             touse = Math.ceil(0.3 * numsentences);

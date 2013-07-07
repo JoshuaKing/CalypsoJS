@@ -1,4 +1,64 @@
-// Attempt at porting to Javascript //
+function Token(type, value) {
+	this.token = type;
+	this.value = value;
+}
+
+Tok = {
+	WORD: {k:"WORD", r:/^([a-z']+)[\W_]/i},
+	FLOAT: {k:"FLOAT", r:/^([0-9]+\.[0-9]+)[\W_]/i},
+	NUMBER: {k:"NUMBER", r:/^([0-9]+)[\W_]/},
+	ALIAS: {k:"ALIAS", r:/^([\w-]+)[\W]/i},
+	QUOTE: {k:"QUOTE", r:/^("|''|``)/},
+	STARTPAREN: {k:"STARTPAREN", r:/^(\()/},
+	ENDPAREN: {k:"ENDPAREN", r:/^(\))/},
+	SPACE: {k:"SPACE", r:/^([ ]+)/},
+	COMMA: {k:"[,]", r:/^(,)/},
+	COLON: {k:"[:]", r:/^(:)/},
+	SEMICOLON: {k:"[;]", r:/^(;)/},
+	PERIOD: {k:"[.]", r:/^(\.)/},
+	EXCLAMATION: {k:"[!]", r:/^(!)/},
+	QUESTION: {k:"[?]", r:/^(\?)/},
+	EOL: {k:"EOL", r:/^([\s]+)/},
+	UNKNOWN: {k:"UNKNOWN", v:"UNKNOWN", r:/(.)/},
+	INVALID: {k:"INVALID", v:"INVALID"}
+}
+
+SenSym = {
+	QUOTATION: "QUOTATION",
+	ODDWORD: "ODDWORD",
+	BRACKETQUOTE: "BRACKETQUOTE",
+	URI: "URI",
+	DOMAIN: "DOMAIN"
+}
+
+function TokenList() {
+	this.tokens = new Array();
+	
+	this.addToken = function(token) {
+		this.tokens.push(token);
+	}
+	
+	this.getTokens = function() {
+		return this.tokens;
+	}
+}
+
+// Remove Later //
+function log(str) {
+	var d = document.getElementById("summary-debug");
+	var br = "<br/>";
+	if (d.innerHTML == "") br = "";
+	d.innerHTML = d.innerHTML + br + str;
+}
+
+function outputTokens(tokens) {
+	arr = tokens.getTokens();
+	log("Tokens:");
+	for (i = 0; i < arr.length; i++) {
+		log(arr[i].token.k + ": " + arr[i].value);
+	}
+	log ("Done.");
+}
 
 function Summariser() {
 	// Parameters //
@@ -13,6 +73,56 @@ function Summariser() {
 	
 	this.getString = function() {
 		return this.string;
+	}
+	
+	this.match = function(reg) {
+		var m = this.string.match(reg);
+		if (m != null) return m[1];
+		return false;
+	}
+	
+	this.tokenize = function() {
+		// Firstly, replace safe HTML entities //
+		var oldstr = this.string;
+		this.string = this.string.replace(/<\/?br\/?>/gi, "\n");
+		this.string = this.string.replace(/<\/p>/gi, "\n");
+		
+		// Replace any HTML tags left //
+		this.string = this.string.replace(/<[^>]*>/g, "");
+		this.string = this.string.replace(/[<>]/g, "");
+	
+		var m = null;
+		var done = false;
+		this.tokens = new TokenList();
+		
+		// Tokenize a word at a time //
+		while (!done && this.string.length > 0) {
+			done = true;
+			m = null;
+			
+			for (s in Tok) {
+				if (m = this.match(Tok[s].r)) {
+					this.tokens.addToken(new Token(Tok[s], m));
+					done = false;
+					break;
+				}
+			}
+			if (!done) this.string = this.string.substr(m.length);
+		}
+		
+		// For debug purposes //
+		outputTokens(this.tokens);
+		log("Next 10 characters: \"" + this.string.substr(0, 10) + "\"");
+		this.string = oldstr;
+	}
+	
+	this.sentence_tokenize = function() {
+		// Slightly higher level //
+		// - Create block quotes
+		// - Create bracket quotes
+		// - Detect URIs and Domains
+		// - Detect which periods to split on
+		
 	}
 	
 	this.remove_brackets = function() {
