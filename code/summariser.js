@@ -3,6 +3,22 @@ function Token(type, value) {
 	this.value = value;
 }
 
+var TokenCounter = new (function() {
+	this.count = 0;
+	
+	this.increment = function() {
+		this.count++;
+	}
+	
+	this.get = function() {
+		return this.count;
+	}
+	
+	this.reset = function() {
+		this.count = 0;
+	}
+})();
+
 Tok = {
 	WORD: {k:"WORD", r:/^([a-z']+)[\W_]/i},
 	FLOAT: {k:"FLOAT", r:/^([0-9]+\.[0-9]+)[\W_]/i},
@@ -18,8 +34,10 @@ Tok = {
 	PERIOD: {k:"[.]", r:/^(\.)/},
 	EXCLAMATION: {k:"[!]", r:/^(!)/},
 	QUESTION: {k:"[?]", r:/^(\?)/},
+	SLASH: {k:"SLASH", r:/^(\/)/},
 	EOL: {k:"EOL", r:/^([\s]+)/},
 	UNKNOWN: {k:"UNKNOWN", v:"UNKNOWN", r:/(.)/},
+	GENWORD: {k:"GENERATEDWORD"},
 	INVALID: {k:"INVALID", v:"INVALID"}
 }
 
@@ -27,8 +45,11 @@ SenSym = {
 	QUOTATION: "QUOTATION",
 	ODDWORD: "ODDWORD",
 	BRACKETQUOTE: "BRACKETQUOTE",
-	URI: "URI",
-	DOMAIN: "DOMAIN"
+//	URI: "URI",
+//	DOMAIN: "DOMAIN",
+	URL: "URL",
+	TOKEN: "TOKEN",
+	END: "ENDOFSENTENCE"
 }
 
 function TokenList() {
@@ -40,6 +61,26 @@ function TokenList() {
 	
 	this.getTokens = function() {
 		return this.tokens;
+	}
+	
+	this.getToken = function(pos) {
+		return this.tokens[pos];
+	}
+	
+	this.getLength = function() {
+		return this.tokens.length;
+	}
+}
+
+function SentenceStructure() {
+	this.paragraph = new Array();
+	
+	this.addSymbol = function(symbol, value) {
+		this.paragraph.push(new Token(symbol, value));
+	}
+	
+	this.getStructure = function() {
+		return this.paragraph;
 	}
 }
 
@@ -60,12 +101,27 @@ function outputTokens(tokens) {
 	log ("Done.");
 }
 
+function outputStructure(struct, depth) {
+	log("Depth " + depth);
+	var symbols = struct.getStructure();
+	for (var i = 0; i < symbols.length; i++) {
+		if (symbols[i].token == SenSym.BRACKETQUOTE || symbols[i].token == SenSym.QUOTATION) {
+			outputStructure(symbols[i].value, depth + 1);
+			log("Resume Depth " + depth);
+		} else {
+			log(" " + symbols[i].token + "+" + symbols[i].value.token.k + ": " + symbols[i].value.value);
+		}
+	}
+}
+
 function Summariser() {
 	// Parameters //
 	this.string = "";
 	this.s_array = new Array();
 	this.s_importance = new Array();
 	this.response = "";
+	this.tokens = new TokenList();
+	TokenCounter.reset();
 	
 	this.setString = function(strings) {
 		this.string = strings;
@@ -93,7 +149,6 @@ function Summariser() {
 	
 		var m = null;
 		var done = false;
-		this.tokens = new TokenList();
 		
 		// Tokenize a word at a time //
 		while (!done && this.string.length > 0) {
@@ -111,18 +166,113 @@ function Summariser() {
 		}
 		
 		// For debug purposes //
-		outputTokens(this.tokens);
+		//outputTokens(this.tokens);
 		log("Next 10 characters: \"" + this.string.substr(0, 10) + "\"");
 		this.string = oldstr;
 	}
 	
-	this.sentence_tokenize = function() {
+	this.construct_url = function(offset) {
+		/*if (!this.tokens.getToken(offset).value.match(/^https?|ftp$/i)) return false;
+		if (this.tokens.getToken(offset + 1).value.token != Tok.COLON) return false;
+		if (this.tokens.getToken(offset + 2).value.token != Tok.SLASH) return false;
+		if (this.tokens.getToken(offset + 3).value.token != Tok.SLASH) return false;
+		*/
+		var url = "";
+		for (var i = 0; offset + i < this.tokens.getLength(); i++) {
+			var val = this.tokens.getToken(offset + i).value;
+			if (!val.match(/^[a-z0-9-._~!$&+,;=:%\/?#]+$/i)) break;
+			url += val;
+		}
+		
+		var dot = url.indexOf('.');
+		if (dot <= 0 || dot >= url.length - 2) return false;
+		
+		var endToken = this.tokens.getToken(offset + i - 1).token;
+		if (endToken == Tok.QUESTION || endToken == Tok.PERIOD || endToken == Tok.EXCLAMATION) {
+			return offset + i - 1;
+		}
+		return offset + i;
+	}
+	
+	this.safe = function(count) {
+		if (this.tokens.getLength() == 0) return false;
+		if (TokenCounter.get() + count < 0) return false;
+		if (TokenCounter.get() + count >= this.tokens.getLength()) return false;
+		return true;
+	}
+	
+	this.sentence_tokenize = function(startWith, endby) {
 		// Slightly higher level //
 		// - Create block quotes
 		// - Create bracket quotes
 		// - Detect URIs and Domains
 		// - Detect which periods to split on
+		var startSection = false;
+		var ss = new SentenceStructure();
+		if (startWith) ss = startWith;
 		
+		while (TokenCounter.get() < this.tokens.getLength()) {
+			var tok = this.tokens.getToken(TokenCounter.get());
+			TokenCounter.increment();
+			
+			// End Token eg. " or ) //
+			if (tok.token == endby) {
+				ss.addSymbol(SenSym.TOKEN, tok);
+				return ss;
+			
+			// Starting Parenthesis (xyz) //
+			} else if (tok.token == Tok.STARTPAREN) {
+				var ss2 = new SentenceStructure();
+				ss2.addSymbol(SenSym.TOKEN, tok);
+				ss.addSymbol(SenSym.BRACKETQUOTE, this.sentence_tokenize(ss2, Tok.ENDPAREN));
+			
+			// URL to look at //
+			} else if (urlsize = this.construct_url(TokenCounter.get())) {
+				var url = "";
+				for (; TokenCounter.get() < urlsize; TokenCounter.increment())
+					url += this.tokens.getToken(TokenCounter.get()).value; 
+				ss.addSymbol(SenSym.URL, new Token(Tok.GENWORD, url));
+				
+				var next = this.tokens.getToken(TokenCounter.get()).token;
+				if (next == Tok.PERIOD || next == Tok.QUESTION || next == Tok.QUESTION) {
+					ss.addSymbol(SenSym.TOKEN, tok);
+					ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
+				}
+			
+			// Starting Quote "xyz" //
+			} else if (tok.token == Tok.QUOTE) {
+				var ss2 = new SentenceStructure();
+				ss2.addSymbol(SenSym.TOKEN, tok);
+				ss.addSymbol(SenSym.QUOTATION, this.sentence_tokenize(ss2, Tok.QUOTE));
+			
+			// Period (.) - possibilities are endless. //
+			} else if (tok.token == Tok.PERIOD) {
+				if (safe(-1)) prev = this.tokens.getToken(TokenCounter.get() - 1);
+				if (safe(1)) next = this.tokens.getToken(TokenCounter.get() + 1);
+				if (safe(2)) next2 = this.tokens.getToken(TokenCounter.get() + 2);
+				
+				if (this.safe(2) && next2.token == Tok.PERIOD && prev.value.match(/[A-Z]+/)) {
+					ss.addSymbol(SenSym.TOKEN, tok);
+				} else if (this.safe(1) && next.token == Tok.EOL) {
+					ss.addSymbol(SenSym.TOKEN, tok);
+				} else if (this.safe(1) && this.tokens.getToken(TokenCounter.get() + 1).value.matches(/^[a-z0-9]/)) {
+					
+				} else {
+					ss.addSymbol(SenSym.TOKEN, tok);
+					ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
+				}
+			
+			// Less-ambiguous question or exclamation mark //
+			} else if (tok.token == Tok.QUESTION || tok.token == Tok.EXCLAMATION) {
+				ss.addSymbol(SenSym.TOKEN, tok);
+				ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
+			
+			// Other Symbol, like a normal word, number, or punctuation etc //
+			} else {
+				ss.addSymbol(SenSym.TOKEN, tok);
+			}
+		}
+		return ss;	// Finished token set
 	}
 	
 	this.remove_brackets = function() {

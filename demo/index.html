@@ -7,7 +7,7 @@
 		
 		<!-- Long paragraph to summarise, from: http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html -->
 		<div id="paragraph">
-        Quotation slightly edited from <a href="http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html">http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html</a>. Bats, dolphins, and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
+        "Quotation slightly edited from <a href="http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html">http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html</a>." Bats, dolphins, and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
 
         I. A. Dokmanic and colleagues at the Swiss Federal Institute of Technology (EPFL) in Lausanne have developed a system capable of reconstructing the shape of a room - and where you are in it - using echoes.
 
@@ -43,6 +43,8 @@
 			
 			summary.setString(text);
 			summary.tokenize();
+			var ss = summary.sentence_tokenize();
+			this.outputStructure(ss, 0);
 			summary.remove_brackets();
 			numsentences = summary.s_split();
             touse = Math.ceil(0.3 * numsentences);
