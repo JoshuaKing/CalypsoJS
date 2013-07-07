@@ -20,6 +20,7 @@ var TokenCounter = new (function() {
 })();
 
 Tok = {
+	CONTRACTION: {k:"CONTRACTION", r:/^([a-z]+-[a-z]+)[\W_]/i},
 	WORD: {k:"WORD", r:/^([a-z']+)[\W_]/i},
 	FLOAT: {k:"FLOAT", r:/^([0-9]+\.[0-9]+)[\W_]/i},
 	NUMBER: {k:"NUMBER", r:/^([0-9]+)[\W_]/},
@@ -101,17 +102,23 @@ function outputTokens(tokens) {
 	log ("Done.");
 }
 
-function outputStructure(struct, depth) {
-	log("Depth " + depth);
+function outputStructure(struct, depth, maxdepth) {
+	var sentence = "[DEPTH " + depth + "] ";
 	var symbols = struct.getStructure();
 	for (var i = 0; i < symbols.length; i++) {
 		if (symbols[i].token == SenSym.BRACKETQUOTE || symbols[i].token == SenSym.QUOTATION) {
-			outputStructure(symbols[i].value, depth + 1);
-			log("Resume Depth " + depth);
+			if (maxdepth < 0 || depth < maxdepth) {
+				sentence += outputStructure(symbols[i].value, depth + 1);
+				sentence += "[/DEPTH " + (depth + 1) + "]";
+			}
+		} else if (symbols[i].token == SenSym.TOKEN && symbols[i].value.token == Tok.EOL) {
+			sentence += " [EOL] ";
 		} else {
-			log(" " + symbols[i].token + "+" + symbols[i].value.token.k + ": " + symbols[i].value.value);
+			sentence += symbols[i].value.value;
 		}
 	}
+	if (depth == 0) log(sentence);
+	return sentence;
 }
 
 function Summariser() {
@@ -212,7 +219,8 @@ function Summariser() {
 		if (startWith) ss = startWith;
 		
 		while (TokenCounter.get() < this.tokens.getLength()) {
-			var tok = this.tokens.getToken(TokenCounter.get());
+			var offset = TokenCounter.get();
+			var tok = this.tokens.getToken(offset);
 			TokenCounter.increment();
 			
 			// End Token eg. " or ) //
@@ -227,16 +235,17 @@ function Summariser() {
 				ss.addSymbol(SenSym.BRACKETQUOTE, this.sentence_tokenize(ss2, Tok.ENDPAREN));
 			
 			// URL to look at //
-			} else if (urlsize = this.construct_url(TokenCounter.get())) {
-				var url = "";
+			} else if (urlsize = this.construct_url(offset)) {
+				var url = tok.value;
 				for (; TokenCounter.get() < urlsize; TokenCounter.increment())
 					url += this.tokens.getToken(TokenCounter.get()).value; 
 				ss.addSymbol(SenSym.URL, new Token(Tok.GENWORD, url));
 				
 				var next = this.tokens.getToken(TokenCounter.get()).token;
 				if (next == Tok.PERIOD || next == Tok.QUESTION || next == Tok.QUESTION) {
-					ss.addSymbol(SenSym.TOKEN, tok);
+					ss.addSymbol(SenSym.TOKEN, this.tokens.getToken(TokenCounter.get()));
 					ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
+					TokenCounter.increment();
 				}
 			
 			// Starting Quote "xyz" //
@@ -247,16 +256,20 @@ function Summariser() {
 			
 			// Period (.) - possibilities are endless. //
 			} else if (tok.token == Tok.PERIOD) {
-				if (safe(-1)) prev = this.tokens.getToken(TokenCounter.get() - 1);
-				if (safe(1)) next = this.tokens.getToken(TokenCounter.get() + 1);
-				if (safe(2)) next2 = this.tokens.getToken(TokenCounter.get() + 2);
+				// Previous Symbols //
+				if (this.safe(-2)) prev = this.tokens.getToken(TokenCounter.get() - 2);
 				
-				if (this.safe(2) && next2.token == Tok.PERIOD && prev.value.match(/[A-Z]+/)) {
+				// Next symbols //
+				if (this.safe(0)) next = this.tokens.getToken(TokenCounter.get());
+				if (this.safe(1)) next2 = this.tokens.getToken(TokenCounter.get() + 1);
+				
+				// Period determining //
+				if (next && next.token == Tok.EOL) {
 					ss.addSymbol(SenSym.TOKEN, tok);
-				} else if (this.safe(1) && next.token == Tok.EOL) {
+				} else if (prev && prev.value.match(/^[A-Z]+[a-zA-Z]{0,2}$/)) {
 					ss.addSymbol(SenSym.TOKEN, tok);
-				} else if (this.safe(1) && this.tokens.getToken(TokenCounter.get() + 1).value.matches(/^[a-z0-9]/)) {
-					
+				} else if (next && next.token == Tok.SPACE && next2 && next2.value.match(/^[a-z0-9]/)) {
+					ss.addSymbol(SenSym.TOKEN, tok);
 				} else {
 					ss.addSymbol(SenSym.TOKEN, tok);
 					ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));

@@ -44,7 +44,7 @@
 			summary.setString(text);
 			summary.tokenize();
 			var ss = summary.sentence_tokenize();
-			this.outputStructure(ss, 0);
+			this.outputStructure(ss, 0, -1);
 			summary.remove_brackets();
 			numsentences = summary.s_split();
             touse = Math.ceil(0.3 * numsentences);
