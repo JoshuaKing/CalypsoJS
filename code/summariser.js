@@ -83,6 +83,13 @@ function SentenceStructure() {
 	this.getStructure = function() {
 		return this.paragraph;
 	}
+	
+	this.contains = function(symbol) {
+		for (var i = 0; i < paragraph.length; i++) {
+			if (paragraph[i].token == symbol) return true;
+		}
+		return false;
+	}
 }
 
 // Remove Later //
@@ -329,21 +336,28 @@ function Summariser() {
 	this.map = function(ss) {
 		ss = ss.getStructure();
 		var count = new Array();
-		for (i = 0; i < ss.length; i++) {
+		for (var i = 0; i < ss.length; i++) {
 			if (ss[i].token == SenSym.TOKEN) {
 				t = ss[i].value;
 				if (t.token == Tok.WORD || t.token == Tok.CONTRACTION) {
 					if (count[t.value]) count[t.value]++;
 					else count[t.value] = 1;
 				}
-			} else if (ss[i].token == SenSym.BRACKETQUOTE) {
-				
+			} else if (ss[i].token == SenSym.BRACKETQUOTE || ss[i].token == SenSym.QUOTATION) {
+				// Go deeper
 			} else {
-			
+				// URL's, EOL's, etc
 			}
 		}
 		
 		return count;
+	}
+	
+	this.sentence_reduce(ss, counts) {
+		ss = ss.getStructure();
+		for (var i = 0; i < ss.length; i++) {
+			// Score each sentence - store info on sentences (start/end)
+		}
 	}
 	
 	this.reduce = function(words, sent) {
