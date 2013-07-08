@@ -110,20 +110,33 @@ function outputTokens(tokens) {
 }
 
 function outputStructure(struct, depth, maxdepth) {
-	var sentence = "[DEPTH " + depth + "] ";
+	var sentence = "<font style='color:lightgrey;'>" + "[DEPTH " + depth + "] " + "</font>";
 	var symbols = struct.getStructure();
 	for (var i = 0; i < symbols.length; i++) {
 		if (symbols[i].token == SenSym.BRACKETQUOTE || symbols[i].token == SenSym.QUOTATION) {
 			if (maxdepth < 0 || depth < maxdepth) {
 				sentence += outputStructure(symbols[i].value, depth + 1);
-				sentence += "[/DEPTH " + (depth + 1) + "]";
 			}
 		} else if (symbols[i].token == SenSym.TOKEN && symbols[i].value.token == Tok.EOL) {
-			sentence += " [EOL] ";
+			sentence += "<font style='color:blue;'>" + " [EOL] " + "</font>";
 		} else {
-			sentence += symbols[i].value.value;
+			if (symbols[i].token == SenSym.TOKEN) {
+				var t = symbols[i].value.token;
+				if (t == Tok.WORD || t == Tok.CONTRACTION) {
+					sentence += "<font style='color:green;'>" + symbols[i].value.value + "</font>";
+				} else if (t == Tok.NUMBER || t == Tok.FLOAT) {
+					sentence += "<font style='color:darkblue;'>" + symbols[i].value.value + "</font>";
+				} else {
+					sentence += symbols[i].value.value;
+				}
+			} else if (symbols[i].token == SenSym.URL) {
+				sentence += "<u>" + symbols[i].value.value + "</u>";
+			} else {
+				sentence += symbols[i].value.value;
+			}
 		}
 	}
+	sentence += "<font style='color:lightgrey;'>" + "[/DEPTH " + depth + "]" + "</font>";
 	if (depth == 0) log(sentence);
 	return sentence;
 }
@@ -160,7 +173,7 @@ function Summariser() {
 		// Replace any HTML tags left //
 		this.string = this.string.replace(/<[^>]*>/g, "");
 		this.string = this.string.replace(/[<>]/g, "");
-	
+		
 		var m = null;
 		var done = false;
 		
@@ -186,11 +199,6 @@ function Summariser() {
 	}
 	
 	this.construct_url = function(offset) {
-		/*if (!this.tokens.getToken(offset).value.match(/^https?|ftp$/i)) return false;
-		if (this.tokens.getToken(offset + 1).value.token != Tok.COLON) return false;
-		if (this.tokens.getToken(offset + 2).value.token != Tok.SLASH) return false;
-		if (this.tokens.getToken(offset + 3).value.token != Tok.SLASH) return false;
-		*/
 		var url = "";
 		for (var i = 0; offset + i < this.tokens.getLength(); i++) {
 			var val = this.tokens.getToken(offset + i).value;
@@ -293,6 +301,12 @@ function Summariser() {
 			
             // EOL may just be PDF continuation //
             } else if (tok.token == Tok.EOL) {
+				// Last symbol //
+				if (!this.safe(1)) {
+					ss.addSymbol(SenSym.TOKEN, tok);
+					continue;
+				}
+				
 				// Previous Symbols //
 				if (this.safe(-2)) prev = this.tokens.getToken(TokenCounter.get() - 2);
 
@@ -349,7 +363,7 @@ function Summariser() {
 		return numsentences;
 	}
 
-	this.map = function(ss) {
+	this.count_words = function(ss) {
 		ss = ss.getStructure();
 		var count = new Array();
 		for (var i = 0; i < ss.length; i++) {
@@ -361,7 +375,7 @@ function Summariser() {
 				}
 			} else if (ss[i].token == SenSym.BRACKETQUOTE || ss[i].token == SenSym.QUOTATION) {
 				// Go deeper
-                var c = this.map(ss[i].value);
+                var c = this.count_words(ss[i].value);
                 for (k in c) {
                     if (!c.hasOwnProperty(k)) continue;
                     if (!count.hasOwnProperty(k)) count[k] = 0;
@@ -375,37 +389,45 @@ function Summariser() {
 		return count;
 	}
 	
-	this.sentence_reduce = function(ss, counts) {
+	this.score_sentences = function(ss, counts) {
 		var ss = ss.getStructure();
         var scores = new Array();
         var s = 0;
-        var l = 0;
-        scores[s] = {c:0, l:0};
-
+        scores[s] = {score:0, length:0, sentence: "", number:s};
+		
 		for (var i = 0; i < ss.length; i++) {
 			// Score each sentence - store info on sentences (start/end)
             var t = ss[i].value;
             if (ss[i].token == SenSym.TOKEN && (t.token == Tok.WORD || t.token == Tok.CONTRACTION)) {
-                scores[s].c += counts[t.value];
-                scores[s].l++;
-                console.log("Sentence #" + s + " (" + t.value + ") " + counts[t.value]);
+                scores[s].score += counts[t.value];
+                scores[s].length++;
+				scores[s].sentence += t.value;
             } else if (ss[i].token == SenSym.QUOTATION) {
-                var subscore = this.sentence_reduce(t, counts);
-                var numwords = Object.keys(subscore).reduce(function(sum, k) {return sum + subscore[k].l;}, 0);
-                console.log("Sentence #" + s + " Quotation: " + numwords);
-                console.log(subscore);
+                var subscore = this.score_sentences(t, counts);
+				var numwords = Object.keys(subscore).reduce(function(sum, k) {return sum + subscore[k].length;}, 0);
+				
+				// Add quotation words to sentence //
+				scores[s].length += numwords;
+				for (var j = 0; j < subscore.length; j++) {
+					scores[s].score += subscore[j].score;
+					scores[s].sentence += subscore[j].sentence;
+				}
             } else if (t.token == Tok.EOL || i + 1 == ss.length) {
                 if (i + 1 < ss.length) {
-                    l = 0;
                     s++;
-                    scores[s] = {c:0, l:0};
+                    scores[s] = {score:0, length:0, sentence: "", number:s};
                 }
-            }
+            } else if (ss[i].token == SenSym.BRACKETQUOTE) {
+				// Do nothing - don't include it in summary.
+			} else {
+				scores[s].sentence += t.value;
+			}
 		}
 
         return scores;
 	}
 	
+	// Not Needed //
 	this.reduce = function(words, sent) {
 		counts = new Array();
 		allWords = new Array();
@@ -456,6 +478,7 @@ function Summariser() {
 		return rated.sort(function(a,b){return a-b});
 	}
 	
+	// Not Needed //
 	this.summarise = function(sent) {
 		words = new Array();
 		sentleng = this.s_array.length;
@@ -494,6 +517,51 @@ function Summariser() {
 			}
 		}
 		return this.response;
+	}
+
+	this.summarize = function(numsentences, sentences, includeHeading) {
+		if (numsentences < 1) return "";
+	
+		var sorted = sentences.sort(function(a, b) {return (a.score/a.length) - (b.score/b.length)});	// sort on normalised value
+		for (var i = 0; i < sorted.length; i++) {
+			if (sorted[i].length <= 3) sorted.shift();
+		}
+		
+		if (numsentences > sorted.length) numsentences = sorted.length;
+		if (sorted.length == 0) return "";
+		
+		sorted = sorted.splice(0, numsentences - 1);
+		var chrono = sorted.sort(function(a, b) {return (a.number - b.number)});	// sort on normalised value
+		
+		var s = "";
+		for (i = 0; i < chrono.length; i++) {
+			if (i == 0 && includeHeading && chrono[i].number != 0) {
+				s += sentences[0].sentence.replace(/^\s*(.*?)\s*$/,"$1");
+				chrono.pop();
+				continue;
+			}
+			
+			if (i > 0 && (chrono[i - 1].number + 1) == chrono[i].number) s += " ";
+			else if (i > 0) s += "<br/>";
+			s += chrono[i].sentence.replace(/^\s*(.*?)\s*$/,"$1");
+		}
+		
+		return s;
+	}
+
+	this.getSummary = function(percent, min, max, includeHeading) {
+		this.tokenize();
+		var structure = this.sentence_tokenize();
+		outputStructure(structure, 0, -1);
+		var counts = this.count_words(structure);
+		var scores = this.score_sentences(structure, counts);
+		
+		var numsentences = Math.ceil(percent * scores.length);
+		if (min) numsentences = Math.max(numsentences, min);
+		if (max) numsentences = Math.min(numsentences, max);
+		
+		var summary = this.summarize(numsentences, scores, includeHeading);
+		return summary;
 	}
 }
 

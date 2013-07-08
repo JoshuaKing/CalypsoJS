@@ -6,7 +6,7 @@
 		<h1>Paragraph to summarise</h1>
 		
 		<!-- Long paragraph to summarise, from: http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html -->
-		<div id="paragraph">
+		<div id="old-paragraph" style="display:none;">
         "Quotation slightly edited from <a href="http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html">http://www.newscientist.com/article/dn23709-echolocating-app-will-let-you-map-a-room-with-sound.html</a>." Bats, dolphins, and even some blind people use echoes to create a mental 3D map of their environment and where they are in it. A smartphone's chirp could soon let us do the same.
 
         I. A. Dokmanic and colleagues at the Swiss Federal Institute of Technology (EPFL) in Lausanne have developed a system capable of reconstructing the shape of a room - and where you are in it - using echoes.
@@ -26,7 +26,20 @@
         Another tack the team may take is simply measuring echoes from people's voices as they walk around a building talking on their cellphones. But that will face problems, says University of Salford acoustician Trevor Cox - who once modelled Stonehenge acoustically.
 
         "To make an app which can listen to mobile phone speech and help you echolocate presents a huge number of challenges. In a crowded mall fellow shoppers would scatter and absorb echoes, while the chatty hubbub would mask the sound of the reflections."
-        </div>
+		</div>
+		<div id="paragraph">
+		<span class="comment"><font color="#000000">Source: a long time ago I read several books 
+		on this topic because I collected odd books and I found three of them in an estate sale. The 
+		instructions below are how this was done in the early 90's and earlier, but today, with 
+		increased security and faster records access, the information is probably well out of 
+		date.<p>Traditionally, the best way to do this has always been to establish a solid 
+		"breeder document". This is a document used to procure other documents and assure someone 
+		that the person is who they claim to be. Typically this was a birth certificate.</p><p>There
+		were two general ways of doing this. One way was to apply for the birth certificate of someone
+		already alive, but living in another state and unlikely to travel internationally (assuming 
+		you wanted a passport). However, this is less likely to be successful today given the widespread information available on everyone.</p><p>The other way was to acquire the birth certificate of someone who was deceased. In theory, you want someone who was born in one state and died in another to ensure that the birth certificate won't be stamped as "deceased".</p><p>One thing to be avoided is to scan news stories of people who died in well-publicized accidents: if others have applied for the birth certificate (having the same idea in mind) too many times, a certificate may get flagged as suspect and extra scrutiny be applied to requests for it.</p><p>Note that instructions for applying for birth certificates are rather lax: <a href="http://www.dshs.state.tx.us/vs/reqproc/certified_copy.shtm" rel="nofollow">http://www.dshs.state.tx.us/vs/reqproc/certified_copy.shtm</a>. Given today's software, it's trivial to fake a "photocopy" of an ID . You'd want the birth certificate sent to a mail drop (<a href="http://www.maildropsearch.com/" rel="nofollow">http://www.maildropsearch.com/</a>) and have it forwarded on to another address for added security.</p><p>Once you have the birth certificate, you then start obtaining "supporting" documentation, such as library cards, or maybe register for a local community college and get a student ID (those are often easy to get and are readily accepted as valid ID).</p><p>Eventually you'll want to apply for a state-issued ID card. Some states have stricter requirements than others. There was a time when you could apply for one with a library card and your birth certificate, but those times seem to be long-gone. States will generally require a social security number, too.</p><p>Applying for the social security number was always the tricky bit. One source recommended altering your "photocopied" documents to show that you were under-age and then apply by mail (the Social Security card doesn't list your age, after all). If you are ready to retire, file to correct the "bookkeeping error" that incorrectly lists your age. I am suspicious of whether or not this would work.</p><p>As you can see, the process is essentially one of building momentum of starting with small, easy-to-acquire documents and working your way up the chain. It was a long, slow, laborious process and it used to be that acquiring an alternate identity wasn't necessarily illegal so long as you did not due so for purposes of fraud. Today, I believe it's illegal in all fifty state.</p><p>That being said, I wouldn't try this today (hell, I never would have tried it when it was still feasible). It's worth several penal slaps on the wrist.</p><p>I'm sure that a cunning person can take the plan above and work out how to acquire a new identity today, but I'd not recommend it.</p></font><p><font color="#000000"><i></i>Update<i></i>: or if it's a passport you want, there are alternatives: <a href="http://www.overseas-exile.com/2013/07/buying-second-passport.html" rel="nofollow">http://www.overseas-exile.com/2013/07/buying-second-passport...</a>. For example, <a href="http://www.diplomaticpassport.com/" rel="nofollow">http://www.diplomaticpassport.com/</a> is known to be a couple of shady guys who have contacts with various third-world government people in African nations who, for the right price (a couple of hundred thousand,
+		last I heard), will get you a diplomatic passport from a dodgy country, but due to the movie "The Ambassador" outing them, they've laid low. The site used to have a somewhat larger presence on the net: <a href="http://web.archive.org/web/20070403230615/http://www.diplomaticpassport.com/" rel="nofollow">http://web.archive.org/web/20070403230615/http://www.diploma...</a></font></p><p><font size="1"><u><a href="reply?id=6003014&amp;whence=%69%74%65%6d%3f%69%64%3d%36%30%30%32%35%39%35">reply</a></u></font></p></span>
+		</div>
 		
 		<h1>Summary</h1>
 		<div id="summary"></div>
@@ -42,12 +55,7 @@
 			var text = document.getElementById("paragraph").innerHTML;
 			
 			summary.setString(text);
-			summary.tokenize();
-			var ss = summary.sentence_tokenize();
-			this.outputStructure(ss, 0, -1);
-			var c = summary.map(ss);
-            var s = summary.sentence_reduce(ss, c);
-			console.log(s);
+			var sum = summary.getSummary(0.3, 2, null, true);
 			// Old Way //
 			summary.remove_brackets();
 			numsentences = summary.s_split();
@@ -55,7 +63,7 @@
 			summary.summarise(touse);
 			
             document.getElementById("summary-stats").innerHTML = "Compression: " + touse + " of " + numsentences + " sentences (" + Math.floor((summary.response.length/text.length) * 100) + "% of characters)"; 
-			document.getElementById("summary").innerHTML = summary.response;
+			document.getElementById("summary").innerHTML = sum;
 		</script>
 	</body>
 </html>
