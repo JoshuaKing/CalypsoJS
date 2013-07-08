@@ -51,18 +51,12 @@
 		<div id="summary-debug"></div>
 		
 		<script>
-			var summary = new Summariser();
 			var text = document.getElementById("paragraph").innerHTML;
 			
-			summary.setString(text);
-			var sum = summary.getSummary(0.3, 2, null, true);
-			// Old Way //
-			summary.remove_brackets();
-			numsentences = summary.s_split();
-            touse = Math.ceil(0.3 * numsentences);
-			summary.summarise(touse);
+			var summary = new Summariser();
+			var sum = summary.getSummary(text, 0.3, 2, null, true);
 			
-            document.getElementById("summary-stats").innerHTML = "Compression: " + touse + " of " + numsentences + " sentences (" + Math.floor((summary.response.length/text.length) * 100) + "% of characters)"; 
+            document.getElementById("summary-stats").innerHTML = "Compression: " + Math.floor((sum.length/text.length) * 100) + "% of characters"; 
 			document.getElementById("summary").innerHTML = sum;
 		</script>
 	</body>
