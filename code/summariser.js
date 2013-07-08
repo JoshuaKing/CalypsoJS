@@ -1,6 +1,6 @@
 function Token(type, value) {
 	this.token = type;
-	this.value = value;
+    this.value = value;
 }
 
 var TokenCounter = new (function() {
@@ -229,6 +229,10 @@ function Summariser() {
 			var offset = TokenCounter.get();
 			var tok = this.tokens.getToken(offset);
 			TokenCounter.increment();
+
+            // Initilisation of some variables //
+            var prev, next, next2;
+            prev = next = next2 = null;
 			
 			// End Token eg. " or ) //
 			if (tok.token == endby) {
@@ -287,6 +291,18 @@ function Summariser() {
 				ss.addSymbol(SenSym.TOKEN, tok);
 				ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
 			
+            // EOL may just be PDF continuation //
+            } else if (tok.token == Tok.EOL) {
+				// Previous Symbols //
+				if (this.safe(-2)) prev = this.tokens.getToken(TokenCounter.get() - 2);
+
+                // Check last line finished //
+                if (prev && (prev.token == Tok.PERIOD || prev.token == Tok.EXCLAMATION || prev.token == Tok.QUESTION)) {
+				    ss.addSymbol(SenSym.TOKEN, tok);
+                } else {
+                    ss.addSymbol(SenSym.TOKEN, new Token(Tok.SPACE, " "));
+                }
+
 			// Other Symbol, like a normal word, number, or punctuation etc //
 			} else {
 				ss.addSymbol(SenSym.TOKEN, tok);
@@ -340,11 +356,17 @@ function Summariser() {
 			if (ss[i].token == SenSym.TOKEN) {
 				t = ss[i].value;
 				if (t.token == Tok.WORD || t.token == Tok.CONTRACTION) {
-					if (count[t.value]) count[t.value]++;
-					else count[t.value] = 1;
+                    if (count.hasOwnProperty(t.value)) count[t.value]++;
+                    else count[t.value] = 1;
 				}
 			} else if (ss[i].token == SenSym.BRACKETQUOTE || ss[i].token == SenSym.QUOTATION) {
 				// Go deeper
+                var c = this.map(ss[i].value);
+                for (k in c) {
+                    if (!c.hasOwnProperty(k)) continue;
+                    if (!count.hasOwnProperty(k)) count[k] = 0;
+                    count[k] += c[k];
+                }
 			} else {
 				// URL's, EOL's, etc
 			}
@@ -353,11 +375,35 @@ function Summariser() {
 		return count;
 	}
 	
-	this.sentence_reduce(ss, counts) {
-		ss = ss.getStructure();
+	this.sentence_reduce = function(ss, counts) {
+		var ss = ss.getStructure();
+        var scores = new Array();
+        var s = 0;
+        var l = 0;
+        scores[s] = {c:0, l:0};
+
 		for (var i = 0; i < ss.length; i++) {
 			// Score each sentence - store info on sentences (start/end)
+            var t = ss[i].value;
+            if (ss[i].token == SenSym.TOKEN && (t.token == Tok.WORD || t.token == Tok.CONTRACTION)) {
+                scores[s].c += counts[t.value];
+                scores[s].l++;
+                console.log("Sentence #" + s + " (" + t.value + ") " + counts[t.value]);
+            } else if (ss[i].token == SenSym.QUOTATION) {
+                var subscore = this.sentence_reduce(t, counts);
+                var numwords = Object.keys(subscore).reduce(function(sum, k) {return sum + subscore[k].l;}, 0);
+                console.log("Sentence #" + s + " Quotation: " + numwords);
+                console.log(subscore);
+            } else if (t.token == Tok.EOL || i + 1 == ss.length) {
+                if (i + 1 < ss.length) {
+                    l = 0;
+                    s++;
+                    scores[s] = {c:0, l:0};
+                }
+            }
 		}
+
+        return scores;
 	}
 	
 	this.reduce = function(words, sent) {
