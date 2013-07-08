@@ -401,7 +401,7 @@ function Summariser() {
 		if (numsentences > sorted.length) numsentences = sorted.length;
 		if (sorted.length == 0) return "";
 		
-		sorted = sorted.splice(0, numsentences - 1);
+		sorted = sorted.splice(0, numsentences);
 		var chrono = sorted.sort(function(a, b) {return (a.number - b.number)});	// sort on normalised value
 		
 		var s = "";
