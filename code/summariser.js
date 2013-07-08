@@ -392,6 +392,8 @@ function Summariser() {
 
 	this.summarize = function(numsentences, sentences, includeHeading) {
 		if (numsentences < 1) return "";
+		
+		var first = sentences[0].sentence;
 	
 		var sorted = sentences.sort(function(a, b) {return (a.score/a.length) - (b.score/b.length)});	// sort on normalised value
 		for (var i = 0; i < sorted.length; i++) {
@@ -407,7 +409,7 @@ function Summariser() {
 		var s = "";
 		for (i = 0; i < chrono.length; i++) {
 			if (i == 0 && includeHeading && chrono[i].number != 0) {
-				s += sentences[0].sentence.replace(/^\s*(.*?)\s*$/,"$1");
+				s += first.replace(/^\s*(.*?)\s*$/,"$1");
 				chrono.pop();
 				continue;
 			}
