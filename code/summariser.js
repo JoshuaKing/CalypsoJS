@@ -20,10 +20,10 @@ var TokenCounter = new (function() {
 })();
 
 Tok = {
-	CONTRACTION: {k:"CONTRACTION", r:/^([a-z]+-[a-z]+)[\W_]/i},
-	WORD: {k:"WORD", r:/^([a-z']+)[\W_]/i},
-	FLOAT: {k:"FLOAT", r:/^([0-9]+\.[0-9]+)[\W_]/i},
-	NUMBER: {k:"NUMBER", r:/^([0-9]+)[\W_]/},
+	CONTRACTION: {k:"CONTRACTION", r:/^([a-z]+-[a-z]+)[\W]/i},
+	WORD: {k:"WORD", r:/^([a-z']+)[\W]/i},
+	FLOAT: {k:"FLOAT", r:/^([0-9]+\.[0-9]+)[\W]/i},
+	NUMBER: {k:"NUMBER", r:/^([0-9]+)[\W]/},
 	ALIAS: {k:"ALIAS", r:/^([\w-]+)[\W]/i},
 	QUOTE: {k:"QUOTE", r:/^("|''|``)/},
 	STARTPAREN: {k:"STARTPAREN", r:/^(\()/},
@@ -331,7 +331,7 @@ function Summariser() {
 		var count = new Array();
 		for (var i = 0; i < ss.length; i++) {
 			if (ss[i].token == SenSym.TOKEN) {
-				t = ss[i].value;
+				var t = ss[i].value;
 				if (t.token == Tok.WORD || t.token == Tok.CONTRACTION) {
                     if (count.hasOwnProperty(t.value)) count[t.value]++;
                     else count[t.value] = 1;
