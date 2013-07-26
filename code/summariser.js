@@ -326,9 +326,9 @@ function Summariser() {
 		return ss;	// Finished token set
 	}
 	
-	this.count_words = function(ss) {
+	this.count_words = function(ss, count) {
 		ss = ss.getStructure();
-		var count = new Array();
+		//var count = new Array();
 		for (var i = 0; i < ss.length; i++) {
 			if (ss[i].token == SenSym.TOKEN) {
 				var t = ss[i].value;
@@ -338,12 +338,13 @@ function Summariser() {
 				}
 			} else if (ss[i].token == SenSym.BRACKETQUOTE || ss[i].token == SenSym.QUOTATION) {
 				// Go deeper
-                var c = this.count_words(ss[i].value);
+                /*var c = this.count_words(ss[i].value);
                 for (k in c) {
                     if (!c.hasOwnProperty(k)) continue;
                     if (!count.hasOwnProperty(k)) count[k] = 0;
                     count[k] += c[k];
-                }
+                }*/
+                count = this.count_words(ss[i].value, count);
 			} else {
 				// URL's, EOL's, etc
 			}
@@ -427,7 +428,7 @@ function Summariser() {
 		this.tokenize();
 		var structure = this.sentence_tokenize();
 		//outputStructure(structure, 0, -1);
-		var counts = this.count_words(structure);
+		var counts = this.count_words(structure, new Array());
 		var scores = this.score_sentences(structure, counts);
 		
 		var numsentences = Math.ceil(percent * scores.length);
