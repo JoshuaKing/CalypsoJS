@@ -261,7 +261,7 @@ function Summariser() {
 					url += this.tokens.getToken(TokenCounter.get()).value; 
 				ss.addSymbol(SenSym.URL, new Token(Tok.GENWORD, url));
 				
-				var next = this.tokens.getToken(TokenCounter.get()).token;
+				if (this.safe(0)) next = this.tokens.getToken(TokenCounter.get()).token;
 				if (next == Tok.PERIOD || next == Tok.QUESTION || next == Tok.QUESTION) {
 					ss.addSymbol(SenSym.TOKEN, this.tokens.getToken(TokenCounter.get()));
 					ss.addSymbol(SenSym.TOKEN, new Token(Tok.EOL, "GENEOL"));
